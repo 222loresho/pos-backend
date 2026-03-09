@@ -1,8 +1,7 @@
 from flask import Flask, jsonify
-from flask_cors import CORS
-from flask_jwt_extended import JWTManager
-from flask_sqlalchemy import SQLAlchemy
+from extensions import db, jwt
 from dotenv import load_dotenv
+from flask_cors import CORS
 import os
 
 load_dotenv()
@@ -14,8 +13,23 @@ app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-jwt = JWTManager(app)
-db = SQLAlchemy(app)
+db.init_app(app)
+jwt.init_app(app)
+
+from models.user import User
+from models.category import Category
+from models.product import Product
+from models.sale import Sale, SaleItem
+
+from routes.auth import auth_bp
+from routes.products import products_bp
+from routes.categories import categories_bp
+from routes.sales import sales_bp
+
+app.register_blueprint(auth_bp, url_prefix="/api/auth")
+app.register_blueprint(products_bp, url_prefix="/api/products")
+app.register_blueprint(categories_bp, url_prefix="/api/categories")
+app.register_blueprint(sales_bp, url_prefix="/api/sales")
 
 @app.route("/api/health")
 def health():
