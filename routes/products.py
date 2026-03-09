@@ -13,7 +13,6 @@ def get_products():
         'name': p.name,
         'price': float(p.price),
         'stock': p.stock,
-        'barcode': p.barcode,
         'category_id': p.category_id
     } for p in products])
 
@@ -21,12 +20,14 @@ def get_products():
 @jwt_required()
 def create_product():
     data = request.get_json()
+    category_id = data.get('category_id')
+    if category_id == '' or category_id == 0:
+        category_id = None
     product = Product(
         name=data['name'],
         price=data['price'],
         stock=data.get('stock', 0),
-        barcode=data.get('barcode'),
-        category_id=data.get('category_id')
+        category_id=category_id
     )
     db.session.add(product)
     db.session.commit()
