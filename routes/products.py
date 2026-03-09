@@ -32,3 +32,26 @@ def create_product():
     db.session.add(product)
     db.session.commit()
     return jsonify({'message': 'Product created successfully'}), 201
+
+@products_bp.route('/<int:id>', methods=['PUT'])
+@jwt_required()
+def update_product(id):
+    product = Product.query.get_or_404(id)
+    data = request.get_json()
+    category_id = data.get('category_id')
+    if category_id == '' or category_id == 0:
+        category_id = None
+    product.name = data.get('name', product.name)
+    product.price = data.get('price', product.price)
+    product.stock = data.get('stock', product.stock)
+    product.category_id = category_id
+    db.session.commit()
+    return jsonify({'message': 'Product updated successfully'})
+
+@products_bp.route('/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_product(id):
+    product = Product.query.get_or_404(id)
+    db.session.delete(product)
+    db.session.commit()
+    return jsonify({'message': 'Product deleted successfully'})
