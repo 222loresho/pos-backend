@@ -1,0 +1,20 @@
+rom flask import Flask, jsonify
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+app = Flask(__name__)
+CORS(app)
+
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET", "super-secret-key")
+jwt = JWTManager(app)
+
+@app.route("/api/health")
+def health():
+    return jsonify({"status": "Flask is running!"})
+
+if __name__ == "__main__":
+    app.run(debug=True)
