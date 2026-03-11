@@ -1,11 +1,15 @@
 from flask import Flask
-from extensions import db, jwt
 from flask_cors import CORS
+from extensions import db, jwt
 import os
 
 app = Flask(__name__)
 
-CORS(app, origins="*")
+CORS(app, 
+     origins=["https://222loresho.github.io", "http://localhost:5173", "http://192.168.1.104:5173"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization"],
+     supports_credentials=True)
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres.brkvmeleudpontlxmmir:0OHz1aGVi2fye7EA@aws-1-eu-west-1.pooler.supabase.com:6543/postgres")
 JWT_SECRET = os.environ.get("JWT_SECRET", "09333f71c3fd95637e321ff2f35feccf08d1e9a7c505f7d215863210b6feae49")
@@ -28,15 +32,14 @@ from routes.products import products_bp
 from routes.categories import categories_bp
 from routes.sales import sales_bp
 from routes.orders import orders_bp
+from routes.users import users_bp
 
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(products_bp, url_prefix='/api/products')
 app.register_blueprint(categories_bp, url_prefix='/api/categories')
 app.register_blueprint(sales_bp, url_prefix='/api/sales')
 app.register_blueprint(orders_bp, url_prefix='/api/orders')
+app.register_blueprint(users_bp, url_prefix='/api/users')
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0")
-
-from routes.users import users_bp
-app.register_blueprint(users_bp, url_prefix='/api/users')
