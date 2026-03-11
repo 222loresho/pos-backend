@@ -37,3 +37,6 @@ app.register_blueprint(orders_bp, url_prefix='/api/orders')
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0")
+
+from routes.users import users_bp
+app.register_blueprint(users_bp, url_prefix='/api/users')
