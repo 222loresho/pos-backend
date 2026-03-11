@@ -20,20 +20,23 @@ from models.user import User
 from models.category import Category
 from models.product import Product
 from models.sale import Sale, SaleItem
+from models.order import Order, OrderItem
 
 from routes.auth import auth_bp
 from routes.products import products_bp
 from routes.categories import categories_bp
 from routes.sales import sales_bp
+from routes.orders import orders_bp
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(products_bp, url_prefix="/api/products")
 app.register_blueprint(categories_bp, url_prefix="/api/categories")
 app.register_blueprint(sales_bp, url_prefix="/api/sales")
+app.register_blueprint(orders_bp, url_prefix="/api/orders")
 
 @app.route("/api/health")
 def health():
     return jsonify({"status": "Flask is running!"})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
