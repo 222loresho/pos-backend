@@ -46,7 +46,8 @@ def daily_report():
             item_sales[pid]['quantity'] += item.quantity
             item_sales[pid]['revenue'] += float(item.subtotal)
 
-    top_products = sorted(item_sales.values(), key=lambda x: x['quantity'], reverse=True)[:10]
+    all_items = sorted(item_sales.values(), key=lambda x: x['quantity'], reverse=True)
+    top_products = all_items[:10]
 
     sales_list = []
     for s in sales:
@@ -67,5 +68,6 @@ def daily_report():
         'total_transactions': total_transactions,
         'by_payment_method': by_method,
         'top_products': top_products,
+        'all_items': all_items,
         'sales': sales_list
     })
