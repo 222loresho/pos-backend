@@ -55,3 +55,16 @@ def delete_product(id):
     db.session.delete(product)
     db.session.commit()
     return jsonify({'message': 'Product deleted successfully'})
+
+@products_bp.route('/low-stock', methods=['GET'])
+@jwt_required()
+def low_stock():
+    threshold = request.args.get('threshold', 10, type=int)
+    products = Product.query.filter(Product.stock <= threshold).order_by(Product.stock.asc()).all()
+    return jsonify([{
+        'id': p.id,
+        'name': p.name,
+        'stock': p.stock,
+        'price': float(p.price),
+        'category_id': p.category_id
+    } for p in products])
