@@ -43,3 +43,6 @@ app.register_blueprint(users_bp, url_prefix='/api/users')
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0")
+
+from routes.reports import reports_bp
+app.register_blueprint(reports_bp, url_prefix='/api/reports')
