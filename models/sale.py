@@ -1,5 +1,10 @@
 from extensions import db
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+KENYA_TZ = timezone(timedelta(hours=3))
+
+def kenya_time():
+    return datetime.now(KENYA_TZ).replace(tzinfo=None)
 
 class Sale(db.Model):
     __tablename__ = 'sales'
@@ -10,7 +15,8 @@ class Sale(db.Model):
     amount_paid = db.Column(db.Numeric(10, 2))
     change_due = db.Column(db.Numeric(10, 2))
     payment_method = db.Column(db.String(20), default='cash')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=kenya_time)
+    items = db.relationship('SaleItem', backref='sale', lazy=True)
 
 class SaleItem(db.Model):
     __tablename__ = 'sale_items'
