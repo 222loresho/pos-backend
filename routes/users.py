@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
 from models.user import User
-from passlib.hash import bcrypt
+from passlib.hash import pbkdf2_sha256 as bcrypt
 
 users_bp = Blueprint('users', __name__)
 
