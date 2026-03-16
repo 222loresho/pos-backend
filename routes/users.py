@@ -40,7 +40,8 @@ def create_user():
         username=data['username'],
         password=bcrypt.hash(data['password']),
         role=data.get('role', 'cashier'),
-        active=True
+        active=True,
+        pin=data.get('pin', '1234')
     )
     db.session.add(user)
     db.session.commit()
