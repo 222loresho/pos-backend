@@ -8,3 +8,4 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default='cashier')
     active = db.Column(db.Boolean, default=True)
+    pin = db.Column(db.String(10), default='1234')

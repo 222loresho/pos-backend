@@ -56,6 +56,7 @@ def update_user(user_id):
     if 'name' in data: user.name = data['name']
     if 'role' in data: user.role = data['role']
     if 'active' in data: user.active = data['active']
+    if 'pin' in data and data['pin']: user.pin = data['pin']
     if 'password' in data and data['password']:
         user.password = bcrypt.hash(data['password'])
     db.session.commit()

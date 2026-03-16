@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, jwt_required, get_jwt_identity
 from models.user import User
 from extensions import db
 from passlib.hash import pbkdf2_sha256
@@ -54,6 +54,6 @@ def verify_pin():
     user = User.query.get(identity)
     if not user:
         return jsonify({'valid': False}), 404
-    if pbkdf2_sha256.verify(data.get('pin', ''), user.password):
+    if user.pin and data.get('pin') == user.pin:
         return jsonify({'valid': True})
     return jsonify({'valid': False})
