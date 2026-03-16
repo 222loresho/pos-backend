@@ -44,3 +44,16 @@ def login():
             "role": user.role
         }
     }), 200
+
+@auth_bp.route('/verify-pin', methods=['POST'])
+@jwt_required()
+def verify_pin():
+    from flask_jwt_extended import get_jwt_identity
+    data = request.json
+    identity = get_jwt_identity()
+    user = User.query.get(identity)
+    if not user:
+        return jsonify({'valid': False}), 404
+    if bcrypt.verify(data.get('pin', ''), user.password):
+        return jsonify({'valid': True})
+    return jsonify({'valid': False})
