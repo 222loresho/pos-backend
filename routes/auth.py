@@ -66,5 +66,5 @@ def pin_login():
         return jsonify({'error': 'User not found or inactive'}), 401
     if user.pin != data.get('pin'):
         return jsonify({'error': 'Wrong PIN'}), 401
-    token = create_access_token(identity=user.id)
+    token = create_access_token(identity=str(user.id))
     return jsonify({'token': token, 'user': {'id': user.id, 'name': user.name, 'role': user.role}})
