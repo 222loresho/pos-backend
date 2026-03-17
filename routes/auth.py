@@ -57,3 +57,14 @@ def verify_pin():
     if user.pin and data.get('pin') == user.pin:
         return jsonify({'valid': True})
     return jsonify({'valid': False})
+
+@auth_bp.route('/pin-login', methods=['POST'])
+def pin_login():
+    data = request.json
+    user = User.query.filter_by(username=data.get('username')).first()
+    if not user or not user.active:
+        return jsonify({'error': 'User not found or inactive'}), 401
+    if user.pin != data.get('pin'):
+        return jsonify({'error': 'Wrong PIN'}), 401
+    token = create_access_token(identity=user.id)
+    return jsonify({'token': token, 'user': {'id': user.id, 'name': user.name, 'role': user.role}})
