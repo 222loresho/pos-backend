@@ -15,6 +15,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres.brkvmeleudp
 JWT_SECRET = os.environ.get("JWT_SECRET", "09333f71c3fd95637e321ff2f35feccf08d1e9a7c505f7d215863210b6feae49")
 
 app.config["JWT_SECRET_KEY"] = JWT_SECRET
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = __import__("datetime").timedelta(hours=12)
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
