@@ -138,7 +138,7 @@ def confirm_order(order_id):
         if product:
             product.stock = max(0, product.stock - item.quantity)
 
-    order.status = 'completed'
+    order.status = 'confirmed'
     db.session.commit()
     return jsonify({'message': 'Order confirmed', 'change_due': 0})
 
