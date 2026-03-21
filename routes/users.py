@@ -2,13 +2,16 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
 from models.user import User
-from passlib.hash import pbkdf2_sha256 as bcrypt
+from passlib.hash import pbkdf2_sha256
 
 users_bp = Blueprint('users', __name__)
 
-def admin_required():
+def get_current_user():
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    return User.query.get(identity)
+
+def admin_required():
+    user = get_current_user()
     if not user or user.role != 'admin':
         return jsonify({'error': 'Admin access required'}), 403
     return None
@@ -24,7 +27,8 @@ def get_users():
         'name': u.name,
         'username': u.username,
         'role': u.role,
-        'active': u.active
+        'active': u.active,
+        'pin': u.pin
     } for u in users])
 
 @users_bp.route('/', methods=['POST'])
@@ -32,16 +36,27 @@ def get_users():
 def create_user():
     err = admin_required()
     if err: return err
-    data = request.json
-    if User.query.filter_by(username=data['username']).first():
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    username = data.get('username', '').strip()
+    password = data.get('password', '').strip()
+    role = data.get('role', 'cashier')
+    pin = data.get('pin', '1234').strip()
+
+    if not name or not username or not password:
+        return jsonify({'error': 'Name, username and password are required'}), 400
+    if len(pin) != 4 or not pin.isdigit():
+        return jsonify({'error': 'PIN must be exactly 4 digits'}), 400
+    if User.query.filter(db.func.lower(User.username) == username.lower()).first():
         return jsonify({'error': 'Username already exists'}), 400
+
     user = User(
-        name=data['name'],
-        username=data['username'],
-        password=bcrypt.hash(data['password']),
-        role=data.get('role', 'cashier'),
+        name=name,
+        username=username.lower(),
+        password=pbkdf2_sha256.hash(password),
+        role=role,
         active=True,
-        pin=data.get('pin', '1234')
+        pin=pin
     )
     db.session.add(user)
     db.session.commit()
@@ -53,13 +68,17 @@ def update_user(user_id):
     err = admin_required()
     if err: return err
     user = User.query.get_or_404(user_id)
-    data = request.json
-    if 'name' in data: user.name = data['name']
+    data = request.get_json()
+    if 'name' in data: user.name = data['name'].strip()
     if 'role' in data: user.role = data['role']
     if 'active' in data: user.active = data['active']
-    if 'pin' in data and data['pin']: user.pin = data['pin']
+    if 'pin' in data and data['pin']:
+        pin = str(data['pin']).strip()
+        if len(pin) != 4 or not pin.isdigit():
+            return jsonify({'error': 'PIN must be exactly 4 digits'}), 400
+        user.pin = pin
     if 'password' in data and data['password']:
-        user.password = bcrypt.hash(data['password'])
+        user.password = pbkdf2_sha256.hash(data['password'])
     db.session.commit()
     return jsonify({'message': 'User updated'})
 
@@ -68,8 +87,8 @@ def update_user(user_id):
 def delete_user(user_id):
     err = admin_required()
     if err: return err
-    identity = get_jwt_identity()
-    if identity == user_id:
+    current = get_current_user()
+    if current.id == user_id:
         return jsonify({'error': 'Cannot delete yourself'}), 400
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
