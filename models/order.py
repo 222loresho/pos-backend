@@ -1,5 +1,10 @@
 from extensions import db
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+KENYA_TZ = timezone(timedelta(hours=3))
+
+def kenya_time():
+    return datetime.now(KENYA_TZ).replace(tzinfo=None)
 
 class Order(db.Model):
     __tablename__ = 'orders'
@@ -17,7 +22,7 @@ class Order(db.Model):
     confirmed_at = db.Column(db.DateTime)
     confirmed_by = db.Column(db.String(100))
     rejection_note = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=kenya_time)
     items = db.relationship('OrderItem', backref='order', lazy=True)
 
 class OrderItem(db.Model):
