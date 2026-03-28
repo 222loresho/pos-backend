@@ -1,49 +1,69 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from extensions import db, jwt
-import os
+from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
+from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)
 
-CORS(app, 
-     origins=["https://222loresho.github.io", "http://localhost:5173", "http://192.168.1.104:5173"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_headers=["Content-Type", "Authorization"],
-     supports_credentials=True)
+# ===== YOUR CONFIG (ALREADY FILLED) =====
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres.brkvmeleudpontlxmmir:0OHz1aGVi2fye7EA@aws-1-eu-west-1.pooler.supabase.com:6543/postgres"
+app.config["JWT_SECRET_KEY"] = "09333f71c3fd95637e321ff2f35feccf08d1e9a7c505f7d215863210b6feae49"
+# ========================================
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres.brkvmeleudpontlxmmir:0OHz1aGVi2fye7EA@aws-1-eu-west-1.pooler.supabase.com:6543/postgres")
-JWT_SECRET = os.environ.get("JWT_SECRET", "09333f71c3fd95637e321ff2f35feccf08d1e9a7c505f7d215863210b6feae49")
+db = SQLAlchemy(app)
+jwt = JWTManager(app)
 
-app.config["JWT_SECRET_KEY"] = JWT_SECRET
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = __import__("datetime").timedelta(hours=12)
-app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+# ===== MODELS =====
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    price = db.Column(db.Float)
+    stock = db.Column(db.Integer)
 
-db.init_app(app)
-jwt.init_app(app)
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    table = db.Column(db.String(50))
+    status = db.Column(db.String(20), default="pending")
+    total = db.Column(db.Float)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-from models.user import User
-from models.category import Category
-from models.product import Product
-from models.sale import Sale, SaleItem
-from models.order import Order, OrderItem
+# ===== ROUTES =====
+@app.route("/")
+def home():
+    return {"status":"running"}
 
-from routes.auth import auth_bp
-from routes.products import products_bp
-from routes.categories import categories_bp
-from routes.sales import sales_bp
-from routes.orders import orders_bp
-from routes.users import users_bp
+@app.route("/api/products")
+def products():
+    return jsonify([{"id":p.id,"name":p.name,"price":p.price,"stock":p.stock} for p in Product.query.all()])
 
-app.register_blueprint(auth_bp, url_prefix='/api/auth')
-app.register_blueprint(products_bp, url_prefix='/api/products')
-app.register_blueprint(categories_bp, url_prefix='/api/categories')
-app.register_blueprint(sales_bp, url_prefix='/api/sales')
-app.register_blueprint(orders_bp, url_prefix='/api/orders')
-app.register_blueprint(users_bp, url_prefix='/api/users')
+@app.route("/api/orders")
+def orders():
+    return jsonify([{"id":o.id,"table":o.table,"status":o.status,"total":o.total} for o in Order.query.all()])
 
-if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=5001)
+@app.route("/api/orders", methods=["POST"])
+def create_order():
+    data = request.json
+    o = Order(table=data["table"], total=data["total"])
+    db.session.add(o)
+    db.session.commit()
+    return {"message":"saved"}
 
-from routes.reports import reports_bp
-app.register_blueprint(reports_bp, url_prefix='/api/reports')
+@app.route("/api/orders/<id>/submit", methods=["POST"])
+def submit(id):
+    o = Order.query.get(id)
+    o.status = "submitted"
+    db.session.commit()
+    return {"message":"submitted"}
+
+@app.route("/api/orders/<id>/confirm", methods=["POST"])
+def confirm(id):
+    o = Order.query.get(id)
+    o.status = "confirmed"
+    db.session.commit()
+    return {"message":"confirmed"}
+
+if __name__ == "__main__":
+    db.create_all()
+    app.run(host="0.0.0.0", port=5001)
