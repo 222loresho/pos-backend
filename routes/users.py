@@ -19,10 +19,7 @@ def admin_required():
 def get_users():
     err = admin_required()
     if err: return err
-    return jsonify([{
-        'id': u.id, 'name': u.name, 'username': u.username,
-        'role': u.role, 'active': u.active, 'pin': u.pin
-    } for u in User.query.all()])
+    return jsonify([{'id': u.id, 'name': u.name, 'username': u.username, 'role': u.role, 'active': u.active, 'pin': u.pin} for u in User.query.all()])
 
 @users_bp.route('/', methods=['POST'])
 @jwt_required()
